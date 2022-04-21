@@ -140,9 +140,11 @@ begin
                         else
                             curr <= result;
                             dturnEn <= '0';
+                            calculate_result <= '1';
                         end if;
                     when result => 
-                        
+                          curr <= start_game;
+                          calculate_result <= '0';
                 end case;
             end if;
         end if;
