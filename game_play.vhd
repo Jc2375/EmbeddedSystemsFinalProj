@@ -32,8 +32,8 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity game_play is
-  Port (clk, en, hit, stay,start: std_logic
-        );
+  Port (clk, en, hit, stay,start: in std_logic;
+        pwin, dwin, pbust, dbust: out std_logic);
 end game_play;
 
 architecture Behavioral of game_play is
@@ -47,10 +47,17 @@ component LFSR8 IS
   PORT (Clk, Rst: IN std_logic;
         output: OUT std_logic_vector (3 DOWNTO 0));
 END component;
+component game_logic is
+  Port ( clk, en: in std_logic;
+  Player_points, Dealer_points: in std_logic_vector(4 downto 0);
+        pwin,dwin, pbust, dbust: out std_logic := '0'
+  );
+end component;
+
 signal resetRandomGenerator: std_logic := '0'; -- not used so far
 type state is (start_game, deal, playerturns, dealerturns, result);
 signal curr: state;
-signal dealEn, pturnEn, dturnEn: std_logic := '0';
+signal dealEn, pturnEn, dturnEn, calculate_result: std_logic := '0';
 signal dealHit, dealStay: std_logic;
 signal newcard: std_logic_vector(3 downto 0);
 signal playerpoints, dealerpoints: std_logic_vector(4 downto 0) :=(others => '0');
@@ -76,6 +83,16 @@ begin
         Rst => resetRandomGenerator, 
         output => newcard
         
+    );
+    gamelogic: game_logic port map(
+        clk => clk,
+        en => calculate_result,
+        Player_points => playerpoints,
+        Dealer_points => dealerpoints,
+        pwin => pwin,
+        dwin => dwin,
+        pbust => pbust,
+        dbust => dbust
     );
     process(clk) begin
         if rising_edge(clk) then
@@ -124,7 +141,7 @@ begin
                             curr <= result;
                             dturnEn <= '0';
                         end if;
-                     when result => 
+                    when result => 
                         
                 end case;
             end if;
