@@ -33,15 +33,22 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity game_play is
   Port (clk, en, hit, stay,start: in std_logic;
-        pwin, dwin, pbust, dbust: out std_logic);
+        pwin, dwin, pbust, dbust: out std_logic;
+        CS  	: out STD_LOGIC;
+		SDIN	: out STD_LOGIC;
+		SCLK	: out STD_LOGIC;
+		DC		: out STD_LOGIC;
+		RES	: out STD_LOGIC;
+		VBAT	: out STD_LOGIC;
+		VDD	: out STD_LOGIC);
 end game_play;
 
 architecture Behavioral of game_play is
 component player_turn is
   Port ( clk, en:in std_logic;
             new_card: in std_logic_vector(3 downto 0);
-            points: in std_logic_vector(4 downto 0);
-            updatedpoints: out std_logic_vector(4 downto 0));
+            points: in std_logic_vector(7 downto 0);
+            updatedpoints: out std_logic_vector(7 downto 0));
 end component;
 component LFSR8 IS
   PORT (Clk, Rst: IN std_logic;
@@ -49,9 +56,22 @@ component LFSR8 IS
 END component;
 component game_logic is
   Port ( clk, en: in std_logic;
-  Player_points, Dealer_points: in std_logic_vector(4 downto 0);
+  Player_points, Dealer_points: in std_logic_vector(7 downto 0);
         pwin,dwin, pbust, dbust: out std_logic := '0'
   );
+end component;
+component PmodOLEDCtrl is
+	Port ( 
+		CLK 	: in  STD_LOGIC;
+		RST 	: in  STD_LOGIC;
+		 Player_points, Dealer_points: in std_logic_vector(7 downto 0);
+		CS  	: out STD_LOGIC;
+		SDIN	: out STD_LOGIC;
+		SCLK	: out STD_LOGIC;
+		DC		: out STD_LOGIC;
+		RES	: out STD_LOGIC;
+		VBAT	: out STD_LOGIC;
+		VDD	: out STD_LOGIC);
 end component;
 
 signal resetRandomGenerator: std_logic := '0'; -- not used so far
@@ -60,7 +80,7 @@ signal curr: state;
 signal dealEn, pturnEn, dturnEn, calculate_result: std_logic := '0';
 signal dealHit, dealStay: std_logic;
 signal newcard: std_logic_vector(3 downto 0);
-signal playerpoints, dealerpoints: std_logic_vector(4 downto 0) :=(others => '0');
+signal playerpoints, dealerpoints: std_logic_vector(7 downto 0) :=(others => '0');
 signal count: std_logic_vector(1 downto 0); --used to deal two hands in deal state
 begin
     
@@ -94,6 +114,19 @@ begin
         pbust => pbust,
         dbust => dbust
     );
+    pmodoled: PmodOLEDCtrl port map(
+        CLK => clk,
+        RST=> '0',
+        Player_points => playerpoints,
+        Dealer_points => dealerpoints,
+        CS => CS,
+        SDIN => SDIN, 
+        SCLK => SCLK ,
+        DC => DC ,
+        RES => RES ,
+        VBAT => VBAT, 
+        VDD => VDD
+    );
     process(clk) begin
         if rising_edge(clk) then
             if en= '1' then
@@ -104,17 +137,23 @@ begin
                         dturnEn <= '1';
                         
                     when deal => 
-                        if unsigned(count)  = 3 then
+                        if unsigned(count)  = 2 then
                             pturnEn <= '0';
                             dturnEn <= '0';
-                            if hit = '1' then 
+                            if unsigned(playerpoints) > 21 then 
+                                curr <= result;
+                                calculate_result <= '1';
+                            elsif hit = '1' AND unsigned(playerpoints) < 21 then 
                                 curr <= playerturns;
                                 pturnEn <= '1';
                             elsif stay = '1' AND unsigned(dealerpoints) < 16 then
                                 curr <= dealerturns;
                                 dturnEn <= '1';
-                            else
+                            elsif stay = '1' AND unsigned(dealerpoints) > 16 then
                                 curr <= result;
+                                calculate_result <= '1';
+                            else
+                                curr <= deal; --(basically after it has dealt two cards each and it hasnt recieved user input yet, keep looping until u do. )
                             end if;
                         else
                             count <= std_logic_vector(unsigned(count)+1);

@@ -33,13 +33,13 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity game_logic is
   Port ( clk, en: in std_logic;
-  Player_points, Dealer_points: in std_logic_vector(4 downto 0);
+  Player_points, Dealer_points: in std_logic_vector(7 downto 0);
         pwin,dwin, pbust, dbust: out std_logic := '0'
   );
 end game_logic;
 
 architecture Behavioral of game_logic is
-    signal p, d: unsigned(4 downto 0);
+    signal p, d: unsigned(7 downto 0);
     
 begin
     p <= unsigned(Player_points);

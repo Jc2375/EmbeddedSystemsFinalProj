@@ -34,8 +34,8 @@ use IEEE.NUMERIC_STD.ALL;
 entity player_turn is
   Port ( clk, en:in std_logic;
             new_card: in std_logic_vector(3 downto 0);
-            points: in std_logic_vector(4 downto 0);
-            updatedpoints: out std_logic_vector(4 downto 0));
+            points: in std_logic_vector(7 downto 0);
+            updatedpoints: out std_logic_vector(7 downto 0));
 end player_turn;
 
 architecture Behavioral of player_turn is
