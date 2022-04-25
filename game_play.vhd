@@ -46,13 +46,13 @@ end game_play;
 architecture Behavioral of game_play is
 component player_turn is
   Port ( clk, en:in std_logic;
-            new_card: in std_logic_vector(3 downto 0);
+            new_card: in std_logic_vector(7 downto 0);
             points: in std_logic_vector(7 downto 0);
             updatedpoints: out std_logic_vector(7 downto 0));
 end component;
 component LFSR8 IS
   PORT (Clk, Rst: IN std_logic;
-        output: OUT std_logic_vector (3 DOWNTO 0));
+        output: OUT std_logic_vector (7 DOWNTO 0));
 END component;
 component game_logic is
   Port ( clk, en: in std_logic;
@@ -76,12 +76,12 @@ end component;
 
 signal resetRandomGenerator: std_logic := '0'; -- not used so far
 type state is (start_game, deal, playerturns, dealerturns, result);
-signal curr: state;
+signal curr: state := start_game;
 signal dealEn, pturnEn, dturnEn, calculate_result: std_logic := '0';
 signal dealHit, dealStay: std_logic;
-signal newcard: std_logic_vector(3 downto 0);
-signal playerpoints, dealerpoints: std_logic_vector(7 downto 0) :=(others => '0');
-signal count: std_logic_vector(1 downto 0); --used to deal two hands in deal state
+signal newcard: std_logic_vector(7 downto 0);
+signal playerpoints, dealerpoints, playerpoints2, dealerpoints2: std_logic_vector(7 downto 0) :=(others => '0');
+signal count: std_logic_vector(1 downto 0):=(others => '0'); --used to deal two hands in deal state
 begin
     
     player: player_turn port map(
@@ -89,14 +89,14 @@ begin
         en => pturnEn, 
         new_card => newcard,
         points => playerpoints,
-        updatedpoints => playerpoints
+        updatedpoints => playerpoints2
     );
     dealer: player_turn port map(
         clk => clk,
         en => dturnEn, 
         new_card => newcard,
         points => dealerpoints,
-        updatedpoints => dealerpoints
+        updatedpoints => dealerpoints2
     );
     random_generator: LFSR8 port map(
         Clk => clk,
@@ -127,6 +127,7 @@ begin
         VBAT => VBAT, 
         VDD => VDD
     );
+    
     process(clk) begin
         if rising_edge(clk) then
             if en= '1' then
