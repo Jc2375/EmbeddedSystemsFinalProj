@@ -33,15 +33,9 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity game_play is
   Port (clk, en, hit, stay,start: in std_logic;
-        pwin, dwin, tie, pbust, dbust: out std_logic;
-        playerpoints, dealerpoints: inout std_logic_vector(7 downto 0);
-        CS  	: out STD_LOGIC;
-		SDIN	: out STD_LOGIC;
-		SCLK	: out STD_LOGIC;
-		DC		: out STD_LOGIC;
-		RES	: out STD_LOGIC;
-		VBAT	: out STD_LOGIC;
-		VDD	: out STD_LOGIC);
+        pwin, dwin, tie, pbust, dbust: inout std_logic;
+        playerpoints, dealerpoints: inout std_logic_vector(7 downto 0)
+       );
 end game_play;
 
 architecture Behavioral of game_play is
@@ -62,23 +56,9 @@ END component;
 component game_logic is
   Port ( clk, en, rst: in std_logic;
   Player_points, Dealer_points: in std_logic_vector(7 downto 0);
-        pwin,dwin, tie, pbust, dbust: out std_logic := '0'
+        pwin,dwin, tie, pbust, dbust: inout std_logic := '0'
   );
 end component;
-component PmodOLEDCtrl is
-	Port ( 
-		CLK 	: in  STD_LOGIC;
-		RST 	: in  STD_LOGIC;
-		 Player_points, Dealer_points: in std_logic_vector(7 downto 0);
-		CS  	: out STD_LOGIC;
-		SDIN	: out STD_LOGIC;
-		SCLK	: out STD_LOGIC;
-		DC		: out STD_LOGIC;
-		RES	: out STD_LOGIC;
-		VBAT	: out STD_LOGIC;
-		VDD	: out STD_LOGIC);
-end component;
-
 signal resetRandomGenerator: std_logic := '0'; -- not used so far
 type state is (generate_initialCards, start_game, deal, playerturns, dealerturns, result);
 signal curr: state := generate_initialCards;
@@ -130,19 +110,6 @@ begin
         pbust => pbust,
         dbust => dbust
     );
-    pmodoled: PmodOLEDCtrl port map(
-        CLK => clk,
-        RST=> '0',
-        Player_points => playerpoints,
-        Dealer_points => dealerpoints,
-        CS => CS,
-        SDIN => SDIN, 
-        SCLK => SCLK ,
-        DC => DC ,
-        RES => RES ,
-        VBAT => VBAT, 
-        VDD => VDD
-    );
     
     process(clk) begin
         if rising_edge(clk) then
@@ -156,12 +123,13 @@ begin
                         curr <= start_game;
                     when start_game => 
                         
-                        curr <= deal;
-                        rst_gmlogic <= '0';
-                        rst_cards <= '0';
-                        pturnEn <= '1';
-                        dturnEn <= '1';
-                        calculate_result <= '0';
+                            curr <= deal;
+                            rst_gmlogic <= '0';
+                            rst_cards <= '0';
+                            pturnEn <= '1';
+                            dturnEn <= '1';
+                            calculate_result <= '0';
+
                         
                     when deal => 
                         if unsigned(count)  = 2 then

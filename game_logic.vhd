@@ -55,7 +55,7 @@ begin
                     dbust <= '0';
                     tie <= '0';
                 elsif  p > 21  then
-                    pbust<= '1'; dwin <= '1';
+                    pbust <= '1'; dwin <= '1';
                 elsif d > 21 then
                     dbust <= '1'; pwin <= '1';
                 elsif p = 21 OR p > d then

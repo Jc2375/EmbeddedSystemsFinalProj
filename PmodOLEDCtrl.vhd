@@ -21,6 +21,7 @@ entity PmodOLEDCtrl is
 		CLK 	: in  STD_LOGIC;
 		RST 	: in  STD_LOGIC;
 		Player_points, Dealer_points: in std_logic_vector(7 downto 0);
+		pwin, dwin, tie, pbust, dbust: in std_logic;
 		CS  	: out STD_LOGIC;
 		SDIN	: out STD_LOGIC;
 		SCLK	: out STD_LOGIC;
@@ -50,6 +51,7 @@ component OledEx is
     Port ( CLK 	: in  STD_LOGIC;
 		RST 	: in	STD_LOGIC;
 		 Player_points, Dealer_points: in std_logic_vector(7 downto 0);
+		 pwin, dwin, tie, pbust, dbust: in std_logic;
 		EN		: in  STD_LOGIC;
 		CS  	: out STD_LOGIC;
 		SDO		: out STD_LOGIC;
@@ -82,7 +84,7 @@ signal example_done		: STD_LOGIC;
 begin
 
 	Init: OledInit port map(CLK, RST, init_en, init_cs, init_sdo, init_sclk, init_dc, RES, VBAT, VDD, init_done);
-	Example: OledEx Port map(CLK, RST,Player_points,Dealer_points, example_en, example_cs, example_sdo, example_sclk, example_dc, example_done);
+	Example: OledEx Port map(CLK, RST,Player_points,Dealer_points,pwin, dwin, tie, pbust, dbust, example_en, example_cs, example_sdo, example_sclk, example_dc, example_done);
 	
 	--MUXes to indicate which outputs are routed out depending on which block is enabled
 	CS <= init_cs when (current_state = OledInitialize) else

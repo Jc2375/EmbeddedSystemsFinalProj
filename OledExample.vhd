@@ -24,6 +24,7 @@ entity OledEx is
     Port ( CLK 	: in  STD_LOGIC; --System CLK
 			  RST 	: in	STD_LOGIC; --Synchronous Reset
 			   Player_points, Dealer_points: in std_logic_vector(7 downto 0);
+			   pwin, dwin, tie, pbust, dbust: in std_logic;
 			  EN		: in  STD_LOGIC; --Example block enable pin
 			  CS  	: out STD_LOGIC; --SPI Chip Select
 			  SDO		: out STD_LOGIC; --SPI Data out

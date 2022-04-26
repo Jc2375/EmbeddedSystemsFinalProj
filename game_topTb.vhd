@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 04/24/2022 10:33:06 PM
+-- Create Date: 04/25/2022 11:11:28 PM
 -- Design Name: 
--- Module Name: game_playTb - Behavioral
+-- Module Name: game_topTb - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -24,38 +24,46 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+library UNISIM;
+use UNISIM.VComponents.all;
 
-entity game_playTb is
+entity game_topTb is
 --  Port ( );
-end game_playTb;
+end game_topTb;
 
-architecture Behavioral of game_playTb is
-component game_play is
-  Port (clk, en, hit, stay,start: in std_logic;
-        pwin, dwin, tie, pbust, dbust: out std_logic
-       );
+architecture Behavioral of game_topTb is
+component game_top is
+  Port ( clk, en: in std_logic;
+        JA: in std_logic_vector(7 downto 0);
+        pwin, dwin, tie, pbust, dbust: inout std_logic;
+         CS  	: out STD_LOGIC;
+		SDIN	: out STD_LOGIC;
+		SCLK	: out STD_LOGIC;
+		DC		: out STD_LOGIC;
+		RES	: out STD_LOGIC;
+		VBAT	: out STD_LOGIC;
+		VDD	: out STD_LOGIC   );
 end component;
-signal clk, en, hit, stay, start, pwin, dwin, tie, pbust, dbust, cs, sdin, sclk, dc, res, vbat, vdd : std_logic;
+signal clk , en :std_logic;
+signal JA1: std_logic_vector(7 downto 0) := (others => '0');
 
+signal pwin, dwin, tie, pbust, dbust: std_logic ;
 begin
-     dut: game_play port map (
+    gametop: game_top port map(
         clk => clk,
-        en => en, 
-        hit => hit, 
-        stay => stay, 
-        start => start, 
-        pwin => pwin, 
-        dwin => dwin, 
+         en => en,
+         JA => JA1,
+         pwin => pwin,
+        dwin => dwin,
         tie => tie,
-        pbust => pbust, 
+        pbust => pbust,
         dbust => dbust
-     );
+    );
+    
     process begin
             clk <= '0';
             wait for 4 ns;
@@ -73,9 +81,8 @@ begin
     process begin 
         wait until en <= '1';
         wait for 24 ns;
-        hit <= '1';
+        JA1 <= "00000001";
         wait for 1000ns;
-        hit <= '0';
-        stay <= '1';
+        JA1 <= "00000010";
     end process;
 end Behavioral;
