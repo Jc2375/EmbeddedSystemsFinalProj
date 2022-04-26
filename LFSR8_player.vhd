@@ -6,12 +6,12 @@ use IEEE.NUMERIC_STD.ALL;
 -- any Xilinx leaf cells in this code.
 library UNISIM;
 use UNISIM.VComponents.all;
-ENTITY LFSR8_player IS
+ENTITY LFSR8_beh IS
   PORT (Clk, Rst: IN std_logic;
         output: OUT std_logic_vector (7 DOWNTO 0));
-END LFSR8_player;
+END LFSR8_beh;
 
-ARCHITECTURE LFSR8_player OF LFSR8_player IS
+ARCHITECTURE LFSR8_beh OF LFSR8_beh IS
   SIGNAL Currstate, Nextstate: std_logic_vector (7 DOWNTO 0);
   SIGNAL feedback: std_logic;
   signal mid :std_logic_vector(7 downto 0);
@@ -32,4 +32,4 @@ BEGIN
   mid(7 downto 4) <= "0000";
   output <= mid;
 
-END LFSR8_player;
+END LFSR8_beh;
