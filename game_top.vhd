@@ -32,16 +32,16 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity game_top is
-  Port ( clk, en: in std_logic;
+  Port ( clk, sw0: in std_logic;
         JA: in std_logic_vector(7 downto 0);
-         pwin, dwin, tie, pbust, dbust: inout std_logic:= '0';
-         CS  	: out STD_LOGIC;
-		SDIN	: out STD_LOGIC;
-		SCLK	: out STD_LOGIC;
-		DC		: out STD_LOGIC;
-		RES	: out STD_LOGIC;
-		VBAT	: out STD_LOGIC;
-		VDD	: out STD_LOGIC   );
+         --pwin, dwin, tie, pbust, dbust: inout std_logic:= '0';
+         CS  	: out STD_LOGIC:= '0';
+		SDIN	: out STD_LOGIC:= '0';
+		SCLK	: out STD_LOGIC:= '0';
+		DC		: out STD_LOGIC:= '0';
+		RES	: out STD_LOGIC:= '0';
+		VBAT	: out STD_LOGIC:= '0';
+		VDD	: out STD_LOGIC:= '0'   );
 end game_top;
 
 architecture Structural of game_top is
@@ -74,8 +74,8 @@ end component;
 
 signal playerpoints, dealerpoints : std_logic_vector(7 downto 0);
 signal hit, stay, start: std_logic := '0';
---signal pwin1, dwin1, tie1, pbust1, dbust1: std_logic ;
-signal JA_input: std_logic_vector(7 downto 0);
+signal pwin, dwin, tie, pbust, dbust: std_logic ;
+signal JA_input: std_logic_vector(7 downto 0) := (others => '0');
 begin
     pmodoled: PmodOLEDCtrl port map(
         CLK => clk,
@@ -97,7 +97,7 @@ begin
         );
     gameplay: game_play port map(
         clk => clk,
-        en => en,  --SWITCH??
+        en => sw0,  --SWITCH??
         hit => hit, 
         stay => stay,
         start => start,
@@ -116,7 +116,7 @@ begin
   
     game: process(clk) begin
         if rising_edge(clk) then
-            if en = '1' then
+            if sw0 = '1' then
                 start <= '1';
                 if JA = "00000001" then 
                     hit <= '1';
