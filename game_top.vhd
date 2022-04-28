@@ -32,8 +32,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity game_top is
-  Port ( clk, sw0: in std_logic;
-        JA: in std_logic_vector(7 downto 0);
+  Port ( clk: in std_logic;
+        JA: inout std_logic_vector(7 downto 0);
          --pwin, dwin, tie, pbust, dbust: inout std_logic:= '0';
          CS  	: out STD_LOGIC:= '0';
 		SDIN	: out STD_LOGIC:= '0';
@@ -48,8 +48,8 @@ architecture Structural of game_top is
 component PmodKYPD is
     Port ( 
 			  clk : in  STD_LOGIC;
-			  JA : inout  STD_LOGIC_VECTOR (7 downto 0) -- PmodKYPD is designed to be connected to JA 
-			  ); -- digit to display on the seven segment display 
+			  JA : inout  STD_LOGIC_VECTOR (7 downto 0) ;-- PmodKYPD is designed to be connected to JA 
+			 Result: out std_logic_vector(3 downto 0) ); 
 end component;
 component PmodOLEDCtrl is
 	Port ( 
@@ -69,14 +69,21 @@ component game_play is
   Port (clk, en, hit, stay,start: in std_logic;
         pwin, dwin, tie, pbust, dbust: inout std_logic;
         playerpoints, dealerpoints: inout std_logic_vector(7 downto 0)
-        );       
+        );
 end component;
-
+component clock_div is
+  Port (Clock: in std_logic;
+        Div: out std_logic );
+end component;
 signal playerpoints, dealerpoints : std_logic_vector(7 downto 0);
-signal hit, stay, start: std_logic := '0';
+signal en, hit, stay, start: std_logic := '0';
 signal pwin, dwin, tie, pbust, dbust: std_logic ;
-signal JA_input: std_logic_vector(7 downto 0) := (others => '0');
+signal JA_decoded: std_logic_vector(3 downto 0);
 begin
+    clock: clock_div port map(
+        Clock => clk,
+        Div => en
+    );
     pmodoled: PmodOLEDCtrl port map(
         CLK => clk,
         RST=> '0',
@@ -97,7 +104,7 @@ begin
         );
     gameplay: game_play port map(
         clk => clk,
-        en => sw0,  --SWITCH??
+        en => en,  --SWITCH??
         hit => hit, 
         stay => stay,
         start => start,
@@ -111,17 +118,18 @@ begin
     );
     keypad: PmodKYPD port map(
         clk => clk,
-        JA => JA_input -- NOT USED??? do i even need this, aslo ja_ inpnut recieves nothing rn, just using JA
+        JA => JA,
+        Result => JA_decoded -- NOT USED??? do i even need this, aslo ja_ inpnut recieves nothing rn, just using JA
     );
   
     game: process(clk) begin
         if rising_edge(clk) then
-            if sw0 = '1' then
+            if en = '1' then
                 start <= '1';
-                if JA = "00000001" then 
+                if JA_decoded = "0001" then 
                     hit <= '1';
                     stay <= '0';
-                elsif JA = "00000010" then 
+                elsif JA_decoded = "0010" then 
                     stay <= '1';
                     hit <= '0';
                 else 
