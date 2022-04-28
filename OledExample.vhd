@@ -23,8 +23,8 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity OledEx is
     Port ( CLK 	: in  STD_LOGIC; --System CLK
 			  RST 	: in	STD_LOGIC; --Synchronous Reset
-			   Player_points, Dealer_points: in std_logic_vector(7 downto 0);
-			   pwin, dwin, tie, pbust, dbust: in std_logic;
+			   Player_points0, Player_points1, Dealer_points0, Dealer_points1,pwin, dwin: in std_logic_vector(7 downto 0);
+			    tie, pbust, dbust: in std_logic;
 			  EN		: in  STD_LOGIC; --Example block enable pin
 			  CS  	: out STD_LOGIC; --SPI Chip Select
 			  SDO		: out STD_LOGIC; --SPI Data out
@@ -106,9 +106,9 @@ type OledMem is array(0 to 3, 0 to 15) of STD_LOGIC_VECTOR(7 downto 0);
 signal current_screen : OledMem; 
 --Constant that contains the screen filled with the Alphabet and numbers
 constant alphabet_screen : OledMem :=((X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
-												(X"51",X"52",X"53",X"54",X"55",X"56",X"57",X"58",X"59",X"5A",X"61",X"62",X"63",X"64",X"65",X"66"),
-												(X"67",X"68",X"69",X"6A",X"6B",X"6C",X"6D",X"6E",X"6F",X"70",X"71",X"72",X"73",X"74",X"75",X"76"),
-												(X"77",X"78",X"79",X"7A",X"30",X"31",X"32",X"33",X"34",X"35",X"36",X"37",X"38",X"39",X"7F",X"7F"));
+												(X"20",X"20",X"20",X"20",X"20",X"57",X"65",X"6c",X"63",X"6F",X"6D",X"20",X"20",X"20",X"20",X"20"),
+												(X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"74",X"6F",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
+												(X"20",X"20",X"20",X"20",X"42",X"6C",X"61",X"63",X"6B",X"6A",X"61",X"63",X"6B",X"20",X"20",X"20"));
 --Constant that fills the screen with blank (spaces) entries
 constant clear_screen : OledMem :=   ((X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),	
 												(X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
@@ -116,9 +116,9 @@ constant clear_screen : OledMem :=   ((X"20",X"20",X"20",X"20",X"20",X"20",X"20"
 												(X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"));
 --Constant that holds "This is Digilent's PmodOLED"
 constant digilent_screen : OledMem:= ((X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
-												(Dealer_points,X"54",X"20",Player_points,X"54",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
-												(X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
-												(X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"));
+												(X"50",X"6C",X"61",X"79",X"65",X"72",X"3A",Player_points0,Player_points1,X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
+												(X"44",X"65",X"61",X"6C",X"65",X"72",X"3A",Dealer_points0,Dealer_points1,X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
+												(X"57",X"69",X"6E",X"3A",pwin,X"20",X"4C",X"6F",X"73",X"65",X"3A",dwin,X"20",X"20",X"20",X"20"));
 --Current overall state of the state machine
 signal current_state : states := Idle;
 --State to go to after the SPI transmission is finished

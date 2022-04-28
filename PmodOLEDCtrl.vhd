@@ -15,7 +15,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use ieee.std_logic_unsigned.ALL;
 use ieee.std_logic_arith.all;
-
+use IEEE.NUMERIC_STD.ALL;
 entity PmodOLEDCtrl is
 	Port ( 
 		CLK 	: in  STD_LOGIC;
@@ -50,8 +50,8 @@ end component;
 component OledEx is
     Port ( CLK 	: in  STD_LOGIC;
 		RST 	: in	STD_LOGIC;
-		 Player_points, Dealer_points: in std_logic_vector(7 downto 0);
-		 pwin, dwin, tie, pbust, dbust: in std_logic;
+		  Player_points0, Player_points1, Dealer_points0, Dealer_points1,pwin, dwin: in std_logic_vector(7 downto 0);
+		  tie, pbust, dbust: in std_logic;
 		EN		: in  STD_LOGIC;
 		CS  	: out STD_LOGIC;
 		SDO		: out STD_LOGIC;
@@ -81,10 +81,18 @@ signal example_sclk		: STD_LOGIC;
 signal example_dc			: STD_LOGIC;
 signal example_done		: STD_LOGIC;
 
-begin
 
+signal playerpoints0, playerpoints1, dealerpoints0, dealerpoints1: std_logic_vector(7 downto 0);
+signal pwin1, dwin1: std_logic_vector(7 downto 0);
+begin
+    playerpoints0 <= std_logic_vector(to_integer(signed(Player_points))/10);
+    playerpoints1 <= std_logic_vector(to_integer(signed(Player_points)) mod 10);
+    dealerpoints0 <= std_logic_vector(to_integer(signed(Dealer_points))/10);
+    dealerpoints1 <= std_logic_vector(to_integer(signed(Dealer_points)) mod 10);
+    pwin1 <= "0000000"&pwin;
+    dwin1 <= "0000000"&dwin;
 	Init: OledInit port map(CLK, RST, init_en, init_cs, init_sdo, init_sclk, init_dc, RES, VBAT, VDD, init_done);
-	Example: OledEx Port map(CLK, RST,Player_points,Dealer_points,pwin, dwin, tie, pbust, dbust, example_en, example_cs, example_sdo, example_sclk, example_dc, example_done);
+	Example: OledEx Port map(CLK, RST,playerpoints0, playerpoints1,dealerpoints0,dealerpoints1,pwin1, dwin1, tie, pbust, dbust, example_en, example_cs, example_sdo, example_sclk, example_dc, example_done);
 	
 	--MUXes to indicate which outputs are routed out depending on which block is enabled
 	CS <= init_cs when (current_state = OledInitialize) else
