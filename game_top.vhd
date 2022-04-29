@@ -206,8 +206,11 @@ begin
                         stay <= '0';
                         hit1 <="00000000";
                         stay1 <= "00000000";
+                        pastdealer_points<= "00000000";
+                            pastplayer_points <= "00000000";
                         if JA_decoded = "0011" then -- play again 
                             curr <= deal;
+                            gameplay_en <= '1';
                             cycle <= '1';
                         end if;
                             
