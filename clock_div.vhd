@@ -16,17 +16,17 @@ entity clock_div is
 end clock_div;
 
 architecture clock_div of clock_div is
-      signal count : std_logic_vector (10 downto 0) := (others => '0');
+      signal count : std_logic_vector (25 downto 0) := (others => '0');
 begin
     process(Clock)
     begin
         if rising_edge(Clock) then
-        if(not( count="10000111101")) then
+        if(not( count="11101110011010110010100000")) then
         Div <= '0';
             count <= std_logic_vector(unsigned(count) + 1); 
-            elsif(count="10000111101") then
+            elsif(count="11101110011010110010100000") then
                 Div <= '1';
-            count <="00000000000"; 
+            count <="00000000000000000000000000"; 
             end if;
     end if;
     end process;

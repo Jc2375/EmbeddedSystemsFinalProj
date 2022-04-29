@@ -37,9 +37,9 @@ end game_topTb;
 
 architecture Behavioral of game_topTb is
 component game_top is
-  Port ( clk, en: in std_logic;
-        JA: in std_logic_vector(7 downto 0);
-        pwin, dwin, tie, pbust, dbust: inout std_logic;
+  Port ( clk: in std_logic;
+        JA: inout std_logic_vector(7 downto 0);
+       -- pwin, dwin, tie, pbust, dbust: inout std_logic;
          CS  	: out STD_LOGIC;
 		SDIN	: out STD_LOGIC;
 		SCLK	: out STD_LOGIC;
@@ -48,20 +48,12 @@ component game_top is
 		VBAT	: out STD_LOGIC;
 		VDD	: out STD_LOGIC   );
 end component;
-signal clk , en :std_logic;
+signal clk :std_logic;
 signal JA1: std_logic_vector(7 downto 0) := (others => '0');
-
-signal pwin, dwin, tie, pbust, dbust: std_logic ;
 begin
     gametop: game_top port map(
         clk => clk,
-         en => en,
-         JA => JA1,
-         pwin => pwin,
-        dwin => dwin,
-        tie => tie,
-        pbust => pbust,
-        dbust => dbust
+         JA => JA1
     );
     
     process begin
@@ -72,14 +64,8 @@ begin
         end process;
     
         -- en process @ 125 MHz / 1085 = ~115200 Hz
-    process begin
-            en <= '0';
-            wait for 8 ns;
-            en <= '1';
-            wait for 8000 ns;
-    end process;
+
     process begin 
-        wait until en <= '1';
         wait for 24 ns;
         JA1 <= "00000001";
         wait for 1000ns;

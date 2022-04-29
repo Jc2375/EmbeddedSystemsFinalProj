@@ -32,7 +32,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity game_top is
-  Port ( clk: in std_logic;
+  Port ( clk : in std_logic;
         JA: inout std_logic_vector(7 downto 0);
          --pwin, dwin, tie, pbust, dbust: inout std_logic:= '0';
          CS  	: out STD_LOGIC:= '0';
@@ -55,7 +55,7 @@ component PmodOLEDCtrl is
 	Port ( 
 		CLK 	: in  STD_LOGIC;
 		RST 	: in  STD_LOGIC;
-		 Player_points, Dealer_points: in std_logic_vector(7 downto 0);
+		 Player_points, Dealer_points, hit, stay : in std_logic_vector(7 downto 0);
 		 pwin, dwin, tie, pbust, dbust: in std_logic;
 		CS  	: out STD_LOGIC;
 		SDIN	: out STD_LOGIC;
@@ -66,7 +66,7 @@ component PmodOLEDCtrl is
 		VDD	: out STD_LOGIC);
 end component;
 component game_play is
-  Port (clk, en, hit, stay,start: in std_logic;
+  Port (clk, en, hit, stay: in std_logic;
         pwin, dwin, tie, pbust, dbust: inout std_logic;
         playerpoints, dealerpoints: inout std_logic_vector(7 downto 0)
         );
@@ -79,16 +79,19 @@ signal playerpoints, dealerpoints : std_logic_vector(7 downto 0);
 signal en, hit, stay, start: std_logic := '0';
 signal pwin, dwin, tie, pbust, dbust: std_logic ;
 signal JA_decoded: std_logic_vector(3 downto 0);
+signal hit1, stay1: std_logic_vector(7 downto 0);
 begin
     clock: clock_div port map(
         Clock => clk,
         Div => en
-    );
+   );
     pmodoled: PmodOLEDCtrl port map(
         CLK => clk,
         RST=> '0',
         Player_points => playerpoints,
         Dealer_points => dealerpoints,
+        hit => hit1,
+        stay => stay1,
         pwin => pwin,
         dwin => dwin,
         tie => tie,
@@ -107,7 +110,6 @@ begin
         en => en,  --SWITCH??
         hit => hit, 
         stay => stay,
-        start => start,
         pwin => pwin,
         dwin => dwin,
         tie => tie,
@@ -119,22 +121,27 @@ begin
     keypad: PmodKYPD port map(
         clk => clk,
         JA => JA,
-        Result => JA_decoded -- NOT USED??? do i even need this, aslo ja_ inpnut recieves nothing rn, just using JA
+        Result => JA_decoded
     );
   
     game: process(clk) begin
         if rising_edge(clk) then
             if en = '1' then
-                start <= '1';
                 if JA_decoded = "0001" then 
                     hit <= '1';
+                    hit1 <="00000001";
                     stay <= '0';
+                    stay1 <= "00000000";
                 elsif JA_decoded = "0010" then 
                     stay <= '1';
+                    stay1 <= "00000001";
                     hit <= '0';
+                    hit1 <="00000000";
                 else 
                     hit <= '0';
+                    hit1 <="00000000";
                     stay <= '0';
+                    stay1 <= "00000000";
                 end if;
             end if;
         end if;

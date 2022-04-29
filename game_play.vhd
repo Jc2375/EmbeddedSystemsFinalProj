@@ -32,7 +32,7 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity game_play is
-  Port (clk, en, hit, stay,start: in std_logic;
+  Port (clk, en, hit, stay: in std_logic;
         pwin, dwin, tie, pbust, dbust: inout std_logic;
         playerpoints, dealerpoints: inout std_logic_vector(7 downto 0)
        );
