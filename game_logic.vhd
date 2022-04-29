@@ -34,7 +34,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity game_logic is
   Port ( clk, en, rst: in std_logic;
   Player_points, Dealer_points: in std_logic_vector(7 downto 0);
-        pwin,dwin, pbust, dbust, tie: out std_logic := '0'
+        pwin,dwin, pbust, dbust, tie, updateP, updateD: out std_logic := '0'
   );
 end game_logic;
 
@@ -54,16 +54,17 @@ begin
                     pbust <= '0';
                     dbust <= '0';
                     tie <= '0';
+                    updateD <= '1'; updateP <= '1';
                 elsif  p > 21  then
-                    pbust <= '1'; dwin <= '1';
+                    pbust <= '1'; dwin <= '1'; pwin <= '0'; dbust <= '0'; updateD <= '0'; updateP <= '0';
                 elsif d > 21 then
-                    dbust <= '1'; pwin <= '1';
+                    dbust <= '1'; pwin <= '1'; dwin <= '0'; pbust <= '0';updateD <= '0'; updateP <= '0';
                 elsif p = 21 OR p > d then
-                    pwin <= '1'; 
+                    pwin <= '1';  updateD <= '0'; updateP <= '0';
                 elsif p = d then 
-                    tie <= '1';
+                    tie <= '1'; updateD <= '0'; updateP <= '0';
                 else
-                    dwin <= '1';
+                    dwin <= '1'; updateD <= '0'; updateP <= '0';
                 end if;
             end if;
         end if;

@@ -32,26 +32,44 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity player_turn is
-  Port ( clk, en ,rst:in std_logic;
+  Port ( clk, en ,rst, update:in std_logic;
             new_card: in std_logic_vector(7 downto 0);
             points: in std_logic_vector(7 downto 0);
             updatedpoints: out std_logic_vector(7 downto 0):= (others => '0'));
 end player_turn;
 
 architecture Behavioral of player_turn is
-
+signal over: std_logic := '0';
 begin
  process(clk) begin
         if rising_edge(clk) then
-            if en= '1' then
-               if rst = '1' then
+            if rst = '1' then
                 updatedpoints <= "00000000";
-               elsif unsigned(new_card) > 13 OR unsigned(new_card) = 0 then
-                    updatedpoints <= std_logic_vector(unsigned(points) + 6);
-               else
-                    updatedpoints <= std_logic_vector(unsigned(points) + unsigned(new_card));
-               end if;
+            end if;
+            if en= '1' then
+               
+               if update = '1' AND en = '1' then 
+                   if unsigned(new_card) > 13 OR unsigned(new_card) = 0 then
+                        if unsigned(points) + unsigned(new_card) < 21 then
+                            updatedpoints <= std_logic_vector(unsigned(points) +6);
+                        elsif unsigned(points) + unsigned(new_card) > 21 AND over = '0' then 
+                            over <= '1';
+                            updatedpoints <= std_logic_vector(unsigned(points) + 6);
+                        else
+                            updatedpoints <= points; -- do not update if already over by once
+                        end if;
+                   else
+                        if unsigned(points) + unsigned(new_card) < 21 then
+                            updatedpoints <= std_logic_vector(unsigned(points) + unsigned(new_card));
+                        elsif unsigned(points) + unsigned(new_card) > 21 AND over = '0' then 
+                            over <= '1';
+                            updatedpoints <= points;
+                        else
+                            updatedpoints <= points; -- do not update if already over by once
+                        end if;
+                   end if;
                 
+               end if;
             end if;
         end if;
     end process;

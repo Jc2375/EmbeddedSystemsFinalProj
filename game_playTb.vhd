@@ -37,24 +37,28 @@ end game_playTb;
 
 architecture Behavioral of game_playTb is
 component game_play is
-  Port (clk, en, hit, stay,start: in std_logic;
-        pwin, dwin, tie, pbust, dbust: out std_logic
+  Port (clk, en, hit, stay,cycle: in std_logic;
+        pwin, dwin, tie, pbust, dbust: inout std_logic;
+        playerpoints, dealerpoints: inout std_logic_vector(7 downto 0)
        );
 end component;
-signal clk, en, hit, stay, start, pwin, dwin, tie, pbust, dbust, cs, sdin, sclk, dc, res, vbat, vdd : std_logic;
-
+signal clk, en, hit, stay, start, pwin, dwin, tie, pbust, dbust: std_logic;
+signal playerpoints, dealerpoints: std_logic_vector(7 downto 0);
+signal cycle: std_logic:= '1';
 begin
      dut: game_play port map (
         clk => clk,
         en => en, 
         hit => hit, 
         stay => stay, 
-        start => start, 
+        cycle => cycle,
         pwin => pwin, 
         dwin => dwin, 
         tie => tie,
         pbust => pbust, 
-        dbust => dbust
+        dbust => dbust,
+        playerpoints => playerpoints,
+        dealerpoints => dealerpoints
      );
     process begin
             clk <= '0';

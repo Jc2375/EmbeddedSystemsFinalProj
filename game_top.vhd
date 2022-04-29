@@ -66,7 +66,7 @@ component PmodOLEDCtrl is
 		VDD	: out STD_LOGIC);
 end component;
 component game_play is
-  Port (clk, en, hit, stay: in std_logic;
+  Port (clk, en, hit, stay, cycle: in std_logic;
         pwin, dwin, tie, pbust, dbust: inout std_logic;
         playerpoints, dealerpoints: inout std_logic_vector(7 downto 0)
         );
@@ -75,16 +75,21 @@ component clock_div is
   Port (Clock: in std_logic;
         Div: out std_logic );
 end component;
-signal playerpoints, dealerpoints : std_logic_vector(7 downto 0);
-signal en, hit, stay, start: std_logic := '0';
+type state is (deal, turn, finish);
+signal curr: state := deal; 
+signal playerpoints,pastplayer_points, pastdealer_points,  dealerpoints : std_logic_vector(7 downto 0) := (others => '0');
+signal past_result: std_logic_vector(3 downto 0);
+signal cycle, en, gameplay_en, hit, stay, start: std_logic := '0';
 signal pwin, dwin, tie, pbust, dbust: std_logic ;
 signal JA_decoded: std_logic_vector(3 downto 0);
 signal hit1, stay1: std_logic_vector(7 downto 0);
+signal hitAvailable: std_logic := '1';
 begin
     clock: clock_div port map(
         Clock => clk,
         Div => en
    );
+   
     pmodoled: PmodOLEDCtrl port map(
         CLK => clk,
         RST=> '0',
@@ -107,9 +112,10 @@ begin
         );
     gameplay: game_play port map(
         clk => clk,
-        en => en,  --SWITCH??
+        en => gameplay_en,  --SWITCH??
         hit => hit, 
         stay => stay,
+        cycle => cycle,
         pwin => pwin,
         dwin => dwin,
         tie => tie,
@@ -127,22 +133,85 @@ begin
     game: process(clk) begin
         if rising_edge(clk) then
             if en = '1' then
-                if JA_decoded = "0001" then 
-                    hit <= '1';
-                    hit1 <="00000001";
-                    stay <= '0';
-                    stay1 <= "00000000";
-                elsif JA_decoded = "0010" then 
-                    stay <= '1';
-                    stay1 <= "00000001";
-                    hit <= '0';
-                    hit1 <="00000000";
-                else 
-                    hit <= '0';
-                    hit1 <="00000000";
-                    stay <= '0';
-                    stay1 <= "00000000";
-                end if;
+                case curr is 
+                    when deal => 
+                        
+                        gameplay_en <= '1';
+                        if pastdealer_points= "00000000" then 
+                            pastdealer_points<= dealerpoints;
+                            pastplayer_points <= playerpoints;
+                            curr <= deal;
+                        elsif pastdealer_points < dealerpoints AND pastplayer_points < playerpoints then
+                            pastdealer_points<= dealerpoints;
+                            pastplayer_points <= playerpoints;
+                            curr <= deal;
+                        elsif pastdealer_points = dealerpoints AND pastplayer_points = playerpoints then --if they havent changed and finished dealing
+                            if JA_decoded = "0001" then 
+                                hit <= '1';
+                                hit1 <="00000001";
+                                stay <= '0';
+                                stay1 <= "00000000";
+                                curr <= turn;
+                                cycle <= '0';
+                                hitAvailable<= '0';
+                            elsif JA_decoded = "0010" then 
+                                stay <= '1';
+                                stay1 <= "00000001";
+                                hit <= '0';
+                                hit1 <="00000000";
+                                curr <= turn;
+                                cycle <= '0';
+                            else 
+                                hit <= '0';
+                                hit1 <="00000000";
+                                stay <= '0';
+                                stay1 <= "00000000";
+                                curr <= turn;
+                                cycle <= '0';
+                            end if;
+                        end if;
+                        past_result <= JA_decoded;
+                   when turn => 
+                        if pbust = '1' OR dbust = '1' then 
+                            curr <= finish;
+                            hit <= '0';
+                            stay <= '0';
+                            gameplay_en <= '0';
+                       
+                        
+                        elsif JA_decoded = "0001" AND hitAvailable = '1' then 
+                            hit <= '1';
+                            hit1 <="00000001";
+                            stay1 <= "00000000";
+                            stay <= '0';
+                            curr <= turn;
+                        elsif JA_decoded = "0010" then 
+                            hit <= '0';
+                            stay <= '1';
+                            curr <= finish;
+                            hitAvailable <= '1';
+                        elsif JA_decoded = "0000" then 
+                            hitAvailable <= '1';
+                            hit <= '0';
+                            stay <= '0';
+                        else 
+                            curr <= turn;
+                            hit <= '0';
+                            stay <= '0';
+                            hitAvailable <= '1';
+                        end if;
+                        past_result <= JA_decoded;
+                    when finish => 
+                     --   gameplay_en <= '1';
+                        stay <= '0';
+                        hit1 <="00000000";
+                        stay1 <= "00000000";
+                        if JA_decoded = "0011" then -- play again 
+                            curr <= deal;
+                            cycle <= '1';
+                        end if;
+                            
+                end case;
             end if;
         end if;
     end process;
