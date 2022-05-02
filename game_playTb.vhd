@@ -78,7 +78,7 @@ begin
         wait until en <= '1';
         wait for 24 ns;
         hit <= '1';
-        wait for 1000ns;
+        wait for 25 ns;
         hit <= '0';
         stay <= '1';
     end process;

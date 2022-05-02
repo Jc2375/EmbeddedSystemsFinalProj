@@ -66,7 +66,7 @@ component PmodOLEDCtrl is
 		VDD	: out STD_LOGIC);
 end component;
 component game_play is
-  Port (clk, en, hit, stay, cycle: in std_logic;
+  Port (clk, en,gameplay_en,hitAvailablecross1, hitAvailablecross2, hit, stay, cycle: in std_logic;
         pwin, dwin, tie, pbust, dbust: inout std_logic;
         playerpoints, dealerpoints: inout std_logic_vector(7 downto 0)
         );
@@ -79,11 +79,13 @@ type state is (deal, turn, finish);
 signal curr: state := deal; 
 signal playerpoints,pastplayer_points, pastdealer_points,  dealerpoints : std_logic_vector(7 downto 0) := (others => '0');
 signal past_result: std_logic_vector(3 downto 0);
-signal cycle, en, gameplay_en, hit, stay, start: std_logic := '0';
+signal cycle, en, hit, stay, start: std_logic := '0';
+signal gameplay_en: std_logic;
 signal pwin, dwin, tie, pbust, dbust: std_logic ;
 signal JA_decoded: std_logic_vector(3 downto 0);
 signal hit1, stay1: std_logic_vector(7 downto 0);
 signal hitAvailable: std_logic := '1';
+signal hitAvailcross1,hitAvailcross2: std_logic := '0';
 begin
     clock: clock_div port map(
         Clock => clk,
@@ -112,7 +114,10 @@ begin
         );
     gameplay: game_play port map(
         clk => clk,
-        en => gameplay_en,  --SWITCH??
+        en => gameplay_en,
+        gameplay_en => gameplay_en,  --SWITCH??
+        hitAvailablecross1 => hitAvailcross1,
+         hitAvailablecross2 => hitAvailcross2,
         hit => hit, 
         stay => stay,
         cycle => cycle,
@@ -135,7 +140,6 @@ begin
             if en = '1' then
                 case curr is 
                     when deal => 
-                        
                         gameplay_en <= '1';
                         if pastdealer_points= "00000000" then 
                             pastdealer_points<= dealerpoints;
@@ -145,8 +149,9 @@ begin
                             pastdealer_points<= dealerpoints;
                             pastplayer_points <= playerpoints;
                             curr <= deal;
-                        elsif pastdealer_points = dealerpoints AND pastplayer_points = playerpoints then --if they havent changed and finished dealing
-                            if JA_decoded = "0001" then 
+                        elsif pastdealer_points = dealerpoints AND pastplayer_points = playerpoints then
+                          --if they havent changed and finished dealing
+                            if JA_decoded = "0001" AND hitAvailable = '1' then 
                                 hit <= '1';
                                 hit1 <="00000001";
                                 stay <= '0';
@@ -154,6 +159,7 @@ begin
                                 curr <= turn;
                                 cycle <= '0';
                                 hitAvailable<= '0';
+                                gameplay_en <= '1';
                             elsif JA_decoded = "0010" then 
                                 stay <= '1';
                                 stay1 <= "00000001";
@@ -161,57 +167,76 @@ begin
                                 hit1 <="00000000";
                                 curr <= turn;
                                 cycle <= '0';
+                                gameplay_en <= '1';
                             else 
                                 hit <= '0';
                                 hit1 <="00000000";
                                 stay <= '0';
-                                stay1 <= "00000000";
-                                curr <= turn;
+                                stay1 <= "00000001";
+                                curr <= deal;
                                 cycle <= '0';
+                                gameplay_en <= '0'; 
                             end if;
                         end if;
-                        past_result <= JA_decoded;
-                   when turn => 
-                        if pbust = '1' OR dbust = '1' then 
+                   when turn =>
+                       if pbust = '1' OR dbust = '1' then 
                             curr <= finish;
                             hit <= '0';
                             stay <= '0';
                             gameplay_en <= '0';
-                       
-                        
+
                         elsif JA_decoded = "0001" AND hitAvailable = '1' then 
+                            if hitAvailcross1 = '0' then 
+                                hitAvailcross1 <= '1';
+                                hitAvailcross2 <= '0';
+                            else 
+                                hitAvailcross1 <= '0';
+                                hitAvailcross2 <= '1';
+                            end if;
                             hit <= '1';
                             hit1 <="00000001";
                             stay1 <= "00000000";
                             stay <= '0';
                             curr <= turn;
+                            hitAvailable <= '0';
+                            gameplay_en <= '1';
                         elsif JA_decoded = "0010" then 
                             hit <= '0';
                             stay <= '1';
+                            hit1 <="00000000";
+                            stay1 <= "00000001";
                             curr <= finish;
                             hitAvailable <= '1';
-                        elsif JA_decoded = "0000" then 
-                            hitAvailable <= '1';
+                            gameplay_en <= '1';
+                        elsif JA_decoded = "1111" then                             
+                            hitAvailable <= '1';                            
                             hit <= '0';
-                            stay <= '0';
+                           stay <= '0';
+                          hit1 <="00000000";
+                          curr <= turn;
+                         gameplay_en <= '1';
                         else 
+        --                   gameplay_en <= '0';  ** HAD THIS YESTERDAY BUT JUST TESTING AROUND
                             curr <= turn;
                             hit <= '0';
                             stay <= '0';
-                            hitAvailable <= '1';
+                           hit1 <="00000001";
+                            stay1 <= "00000001";
                         end if;
-                        past_result <= JA_decoded;
+
                     when finish => 
                      --   gameplay_en <= '1';
                         stay <= '0';
+                        hit <= '0';
                         hit1 <="00000000";
                         stay1 <= "00000000";
                         pastdealer_points<= "00000000";
                             pastplayer_points <= "00000000";
+                            
                         if JA_decoded = "0011" then -- play again 
                             curr <= deal;
                             gameplay_en <= '1';
-                            cycle <= '1';
+                            cycle <= '1';      hitAvailable <= '1';    hitAvailcross1 <= '0';       hitAvailcross2 <= '0';
                         end if;
                             
                 end case;

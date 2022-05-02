@@ -32,7 +32,7 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity game_play is
-  Port (clk, en, hit, stay, cycle: in std_logic;
+  Port (clk, en, gameplay_en, hitAvailablecross1, hitAvailablecross2, hit, stay, cycle: in std_logic;
         pwin, dwin, tie, pbust, dbust: inout std_logic;
         playerpoints, dealerpoints: inout std_logic_vector(7 downto 0)
        );
@@ -69,6 +69,8 @@ signal  playerpoints2, dealerpoints2: std_logic_vector(7 downto 0) :=(others => 
 signal count: std_logic_vector(1 downto 0):=(others => '0'); --used to deal two hands in deal state
 signal  updateP, updateD, rst_cards, rst_gmlogic :std_logic := '0';
 signal beginning :std_logic:= '1';
+signal hitAvailable: std_logic:= '1';
+signal lastAvailcross: std_logic := '1';
 begin
     
     player: player_turn port map(
@@ -117,7 +119,7 @@ begin
     
     process(clk) begin
         if rising_edge(clk) then
-            if en= '1' then
+            if en= '1'  then
                 resetRandomGenerator <= '0';
                 playerpoints2 <= playerpoints;
                 dealerpoints2 <= dealerpoints;
@@ -146,10 +148,11 @@ begin
                                 calculate_result <= '1';
                                 count <= "00";
                               --  rst_cards <= '1';
-                            elsif hit = '1' AND unsigned(playerpoints) < 21 then 
+                            elsif hit = '1' AND unsigned(playerpoints) < 21 AND hitAvailable = '1' then 
                                 curr <= playerturns;
                                 pturnEn <= '1';
                                 count <= "00";
+                                hitAvailable <= '0';
                             elsif stay = '1' AND unsigned(dealerpoints) < 16 then
                                 curr <= dealerturns;
                                 dturnEn <= '1';
@@ -167,14 +170,22 @@ begin
                         end if;
                         
                     when playerturns =>
+                        if hitAvailablecross1 = '1' AND lastAvailcross = '1' then 
+                            hitAvailable <= '1';
+                            lastAvailcross <= '0';
+                        elsif hitAvailablecross2 = '1' AND lastAvailcross = '0' then
+                            hitAvailable <= '1';
+                            lastAvailcross <= '1';
+                        end if;
                         if unsigned(playerpoints) >= 21 then 
                             curr <= result;
                             calculate_result <= '1';
                             pturnEn <= '0';
                           --  rst_cards <= '1';
-                        elsif hit = '1' AND unsigned(playerpoints) < 21 then
+                        elsif hit = '1' AND unsigned(playerpoints) < 21 AND hitAvailable = '1' then
                             curr <= playerturns;
                             pturnEn <= '1';
+                            hitAvailable <= '0';
                        
                         elsif stay = '1'AND unsigned(playerpoints) < 21 then
                             if unsigned(dealerpoints) < 16 then
@@ -208,9 +219,10 @@ begin
                               curr <= start_game;
                               pturnEn <= '1';
                               dturnEn <= '1';
-                              
+                              lastAvailcross <= '1';
                               calculate_result <= '1';
                               rst_gmlogic <= '1';
+                              hitAvailable <= '1';
                           end if;
                           
                 end case;
