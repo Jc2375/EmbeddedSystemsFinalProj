@@ -20,7 +20,7 @@ entity PmodOLEDCtrl is
 		CLK 	: in  STD_LOGIC;
 		RST 	: in  STD_LOGIC;
 		Player_points, Dealer_points, hit, stay: in std_logic_vector(7 downto 0);
-		 pwin, dwin, tie, pbust, dbust: in std_logic;
+		 pwin, dwin, tie, pbust, dbust ,hitAvailcross1, hitAvailcross2, hitAvailable: in std_logic;
 		CS  	: out STD_LOGIC;
 		SDIN	: out STD_LOGIC;
 		SCLK	: out STD_LOGIC;
@@ -49,8 +49,8 @@ end component;
 component OledEx is
     Port ( CLK 	: in  STD_LOGIC;
 		RST 	: in	STD_LOGIC;
-		  Player_points0, Player_points1, Dealer_points0, Dealer_points1,pwin, dwin, test1, hit, stay: in std_logic_vector(7 downto 0);
-		  tie, pbust, dbust: in std_logic;
+		  Player_points0, Player_points1, Dealer_points0, Dealer_points1,pwin, dwin, test1, hit, stay, hitAvailcross1, hitAvailcross2, hitAvailable: in std_logic_vector(7 downto 0);
+		  tie, pbust, dbust, wins: in std_logic_vector(7 downto 0);
 		EN		: in  STD_LOGIC;
 		CS  	: out STD_LOGIC;
 		SDO		: out STD_LOGIC;
@@ -83,20 +83,26 @@ signal test1: std_logic_vector(7 downto 0):= "00000001";
 
 signal playerpoints0, playerpoints1, dealerpoints0, dealerpoints1: std_logic_vector(7 downto 0);
 signal pwin1, dwin1: std_logic_vector(7 downto 0);
-signal hit1, stay1: std_logic_vector(7 downto 0);
+signal hit1, stay1, tie1, pbust1, dbust1, wins1: std_logic_vector(7 downto 0);
+signal hitAvailable1, hitAvailablecross1,hitAvailablecross2: std_logic_vector(7 downto 0);
 begin
     test1 <= "01100010";
     hit1 <= "0011000"&hit(0);
     stay1 <= "0011000"&stay(0);
+    pbust1 <= "0011000"&pbust;
+    dbust1 <= "0011000"&dbust;
+    tie1 <= "0011000" & tie;
     playerpoints0 <= std_logic_vector((unsigned(Player_points)/10) + 48);
     playerpoints1 <= std_logic_vector((unsigned(Player_points) mod 10) + 48);
     dealerpoints0 <= std_logic_vector((unsigned(Dealer_points)/10) + 48);
     dealerpoints1 <= std_logic_vector((unsigned(Dealer_points) mod 10) + 48);
-    
+    hitAvailable1<= "0011000"& hitAvailable;
+    hitAvailablecross1 <= "0011000" & hitAvailcross1;
+    hitAvailablecross2 <= "0011000" & hitAvailcross2;
     pwin1 <= "0011000"&pwin;
     dwin1 <= "0011000"&dwin;
 	Init: OledInit port map(CLK, RST, init_en, init_cs, init_sdo, init_sclk, init_dc, RES, VBAT, VDD, init_done);
-	Example: OledEx Port map(CLK, RST,playerpoints0, playerpoints1,dealerpoints0,dealerpoints1,pwin1, dwin1,test1,hit1, stay1, tie, pbust, dbust, example_en, example_cs, example_sdo, example_sclk, example_dc, example_done);
+	Example: OledEx Port map(CLK, RST,playerpoints0, playerpoints1,dealerpoints0,dealerpoints1,pwin1, dwin1,test1,hit1, stay1, hitAvailablecross1, hitAvailablecross2, hitAvailable1, tie1, pbust1, dbust1, wins1, example_en, example_cs, example_sdo, example_sclk, example_dc, example_done);
 	
 	--MUXes to indicate which outputs are routed out depending on which block is enabled
 	CS <= init_cs when (current_state = OledInitialize) else
@@ -120,6 +126,9 @@ begin
 	process(CLK)
 	begin
 		if(rising_edge(CLK)) then
+		    if pwin = '1' then 
+		      wins1 <= std_logic_vector(unsigned(wins1) + 1);
+		    end if;
 			if(RST = '1') then
 				current_state <= Idle;
 			else

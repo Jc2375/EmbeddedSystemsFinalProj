@@ -47,7 +47,7 @@ end game_top;
 architecture Structural of game_top is
 component PmodKYPD is
     Port ( 
-			  clk : in  STD_LOGIC;
+			  clk , rst: in  STD_LOGIC;
 			  JA : inout  STD_LOGIC_VECTOR (7 downto 0) ;-- PmodKYPD is designed to be connected to JA 
 			 Result: out std_logic_vector(3 downto 0) ); 
 end component;
@@ -55,8 +55,8 @@ component PmodOLEDCtrl is
 	Port ( 
 		CLK 	: in  STD_LOGIC;
 		RST 	: in  STD_LOGIC;
-		 Player_points, Dealer_points, hit, stay : in std_logic_vector(7 downto 0);
-		 pwin, dwin, tie, pbust, dbust: in std_logic;
+		 Player_points, Dealer_points, hit,  stay : in std_logic_vector(7 downto 0);
+		 pwin, dwin, tie, pbust, dbust, hitAvailcross1, hitAvailcross2, hitAvailable: in std_logic;
 		CS  	: out STD_LOGIC;
 		SDIN	: out STD_LOGIC;
 		SCLK	: out STD_LOGIC;
@@ -75,7 +75,7 @@ component clock_div is
   Port (Clock: in std_logic;
         Div: out std_logic );
 end component;
-type state is (deal, turn, finish);
+type state is (deal, turn,cooldown,cooldown1, finish);
 signal curr: state := deal; 
 signal playerpoints,pastplayer_points, pastdealer_points,  dealerpoints : std_logic_vector(7 downto 0) := (others => '0');
 signal past_result: std_logic_vector(3 downto 0);
@@ -85,7 +85,9 @@ signal pwin, dwin, tie, pbust, dbust: std_logic ;
 signal JA_decoded: std_logic_vector(3 downto 0);
 signal hit1, stay1: std_logic_vector(7 downto 0);
 signal hitAvailable: std_logic := '1';
-signal hitAvailcross1,hitAvailcross2: std_logic := '0';
+signal hitAvailcross1: std_logic := '0';
+signal hitAvailcross2:std_logic:='1';
+signal kypdrst :std_logic:= '0';
 begin
     clock: clock_div port map(
         Clock => clk,
@@ -104,6 +106,9 @@ begin
         tie => tie,
         dbust => dbust,
         pbust => pbust,
+        hitAvailcross1 => hitAvailcross1,
+        hitAvailcross2 => hitAvailcross2,
+        hitAvailable => hitAvailable,
         CS => CS,
         SDIN => SDIN, 
         SCLK => SCLK ,
@@ -131,6 +136,7 @@ begin
     );
     keypad: PmodKYPD port map(
         clk => clk,
+        rst => kypdrst ,
         JA => JA,
         Result => JA_decoded
     );
@@ -160,6 +166,7 @@ begin
                                 cycle <= '0';
                                 hitAvailable<= '0';
                                 gameplay_en <= '1';
+                                pastplayer_points <= playerpoints;
                             elsif JA_decoded = "0010" then 
                                 stay <= '1';
                                 stay1 <= "00000001";
@@ -186,10 +193,10 @@ begin
                             gameplay_en <= '0';
 
                         elsif JA_decoded = "0001" AND hitAvailable = '1' then 
-                            if hitAvailcross1 = '0' then 
+                            if hitAvailcross1 = '0' AND hitAvailcross2 = '1' then 
                                 hitAvailcross1 <= '1';
                                 hitAvailcross2 <= '0';
-                            else 
+                            elsif hitAvailcross1 = '1' AND hitAvailcross2 = '0' then
                                 hitAvailcross1 <= '0';
                                 hitAvailcross2 <= '1';
                             end if;
@@ -208,22 +215,36 @@ begin
                             curr <= finish;
                             hitAvailable <= '1';
                             gameplay_en <= '1';
-                        elsif JA_decoded = "1111" then                             
-                            hitAvailable <= '1';                            
-                            hit <= '0';
-                           stay <= '0';
-                          hit1 <="00000000";
-                          curr <= turn;
-                         gameplay_en <= '1';
+                        
                         else 
-        --                   gameplay_en <= '0';  ** HAD THIS YESTERDAY BUT JUST TESTING AROUND
+                           --gameplay_en <= '0';  -- HAD THIS YESTERDAY BUT JUST TESTING AROUND
                             curr <= turn;
                             hit <= '0';
                             stay <= '0';
                            hit1 <="00000001";
                             stay1 <= "00000001";
+                            if pastplayer_points = playerpoints then --not changed clk
+                                hitAvailable <= '1';
+                            elsif pastplayer_points < playerpoints then
+                                curr <= cooldown;
+                                hitAvailable <= '0';
+                                kypdrst <= '1';
+                            end if;
                         end if;
+                    when cooldown =>
+                            kypdrst <= '0';
+                            pastplayer_points <= playerpoints;
+                            curr <= cooldown1;
 
+                    when cooldown1 => 
+                        if JA_decoded = "0001" then
+                            hitAvailable <= '1';
+                            curr <= turn;
+                        elsif JA_decoded = "0010" then 
+                            curr <= turn;
+                        end if;
+                        hit1 <="00000000";
+                            stay1 <= "00000000";
                     when finish => 
                      --   gameplay_en <= '1';
                         stay <= '0';
@@ -231,12 +252,14 @@ begin
                         hit1 <="00000000";
                         stay1 <= "00000000";
                         pastdealer_points<= "00000000";
-                            pastplayer_points <= "00000000";
+                        pastplayer_points <= "00000000";
                             
                         if JA_decoded = "0011" then -- play again 
                             curr <= deal;
                             gameplay_en <= '1';
-                            cycle <= '1';      hitAvailable <= '1';    hitAvailcross1 <= '0';       hitAvailcross2 <= '0';
+                            cycle <= '1';      hitAvailable <= '1';    hitAvailcross1 <= '0';       hitAvailcross2 <= '1';
+                        else
+                            curr <= finish;
                         end if;
                             
                 end case;

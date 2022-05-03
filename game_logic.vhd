@@ -62,7 +62,7 @@ begin
                 elsif p = 21 OR p > d then
                     pwin <= '1';  updateD <= '0'; updateP <= '0';
                 elsif p = d then 
-                    tie <= '1'; updateD <= '0'; updateP <= '0';
+                    tie <= '1'; updateD <= '0'; updateP <= '0'; pwin <= '0'; dwin <= '0';
                 else
                     dwin <= '1'; updateD <= '0'; updateP <= '0';
                 end if;

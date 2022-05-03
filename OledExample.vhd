@@ -105,10 +105,10 @@ signal test: std_logic_vector(7 downto 0) := "00000001";
 --Variable that contains what the screen will be after the next UpdateScreen state
 signal current_screen : OledMem; 
 --Constant that contains the screen filled with the Alphabet and numbers
-signal alphabet_screen : OledMem :=((X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
-												(X"20",X"20",X"20",X"20",X"20",X"57",X"65",X"6c",X"63",X"6F",X"6D",X"65",X"20",X"20",X"20",X"20"),
-												(X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"74",X"6F",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
-												(X"20",X"20",X"20",X"20",X"42",X"6C",X"61",X"63",X"6B",X"6A",X"61",X"63",X"6B",X"20",X"20",X"20"));
+signal alphabet_screen : OledMem :=((X"50",X"72",X"65",X"73",X"73",X"3A",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
+												(X"31",X"20",X"74",X"6F",X"20",X"68",X"69",X"74",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
+												(X"32",X"20",X"74",X"6F",X"20",X"73",X"74",X"61",X"79",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),
+												(X"33",X"20",X"74",X"6F",X"20",X"72",X"65",X"73",X"65",X"74",X"20",X"20",X"20",X"20",X"20",X"20"));
 --Constant that fills the screen with blank (spaces) entries
 constant clear_screen : OledMem :=   ((X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),	
 												(X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20",X"20"),

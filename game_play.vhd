@@ -170,10 +170,10 @@ begin
                         end if;
                         
                     when playerturns =>
-                        if hitAvailablecross1 = '1' AND lastAvailcross = '1' then 
+                        if hitAvailablecross1 = '1' AND hitAvailablecross2 = '0' AND lastAvailcross = '1' then 
                             hitAvailable <= '1';
                             lastAvailcross <= '0';
-                        elsif hitAvailablecross2 = '1' AND lastAvailcross = '0' then
+                        elsif hitAvailablecross2 = '1' AND hitAvailablecross1 = '0' AND lastAvailcross = '0' then
                             hitAvailable <= '1';
                             lastAvailcross <= '1';
                         end if;
